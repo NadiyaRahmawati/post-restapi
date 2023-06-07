@@ -7,7 +7,7 @@ const postSchema = mongoose.Schema({
     },
     user_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        ref : 'User',
         required: true
     },
     created_date: {
@@ -18,8 +18,7 @@ const postSchema = mongoose.Schema({
         type: Date,
         default: null
     }
-}, {
+},  {
     versionKey: false
 })
-
-module.exports = mongoose.model('Post', postSchema, 'post')
+module.exports = mongoose.model('Post', postSchema)

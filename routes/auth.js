@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const bcrypt = require('bcrypt')
+const bcrypt = require('bcryptjs')
 
 const User = require('../models/User')
 
@@ -20,25 +20,26 @@ function result(succ, msg, details) {
     } else {
         return {
             success: succ,
-            message: msg
+            message: msg,
         }
     }
+
 }
 
-// register
+//register
 router.post('/register', async (req, res) => {
     const {
         error
     } = registerValidation(req.body)
     if (error) return res.status(200).json(result(0, error.details[0].message))
 
-    // username exist
+    //username exists
     const usernameExist = await User.findOne({
         username: req.body.username
     })
-    if (usernameExist) return res(200).json(result(0, 'Username already exists!'))
+    if (usernameExist) return res.status(200).json(result(0, 'Username already exists!'))
 
-    // hash passsword
+    //hash password 
     const salt = await bcrypt.genSalt(10)
     const hashPassword = await bcrypt.hash(req.body.password, salt)
 
@@ -49,18 +50,29 @@ router.post('/register', async (req, res) => {
 
     try {
         const saveUser = await user.save()
-        res.status(200).json(result(1, 'Register User Success!', saveUser))
+        req.status(200).json(result(1, 'Register User Success!', saveUser))
     } catch (error) {
-        res.status(200).json(result(0, 'Register User Failed!'))
+        res.status(200).json(result(0, 'Register User Failure!'))
     }
 })
 
-// login
+//Login
 router.post('/login', async (req, res) => {
     const {
         error
     } = loginValidation(req.body)
     if (error) return res.status(200).json(result(0, error.details[0].message))
 
-    //
+    //username exists
+    const user = await User.findOne({
+        username: req.body.username
+    })
+    if (!user) return res.status(200).json(result(0, 'Your Username Is Not Registered !'))
+    //check password
+    const validPwd = await bcrypt.compare(req.body.password, user.password)
+    if (!validPwd) return res.status(200).json(result(0, 'Your Password Is Wrong !'))
+
+    return res.status(200).json(result(1, 'Login Success', user))
 })
+
+module.exports = router
